@@ -28,7 +28,7 @@ var (
 	mapStyleMu     sync.Mutex
 	cachedStyle    *maprender.MapStyle
 	mapStyleErr    error
-	mapStyleURL    = "https://tiles.openfreemap.org/styles/liberty"
+	mapStyleURL    = "https://tiles.openfreemap.org/styles/positron"
 	mapRenderCalls atomic.Int64 // number of base-map renders (tests)
 )
 
