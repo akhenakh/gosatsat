@@ -15,6 +15,20 @@ navy chrome, red accents, white panels, a dashed-crosshair polar sky with red
 cardinals, a green-to-red pass path, and blue live-satellite markers. The
 original icon and satellite artwork ship in `Resources/`.
 
+## Screenshots
+
+<p align="center">
+  <img src="img/calendar.jpg" alt="Calendar of upcoming passes" width="49%">
+  <img src="img/map.jpg" alt="World map with the tracked satellites" width="49%">
+</p>
+<p align="center">
+  <img src="img/live.jpg" alt="Live polar sky" width="49%">
+  <img src="img/pass.jpg" alt="Pass detail with polar plot and Doppler" width="49%">
+</p>
+<p align="center">
+  <img src="img/prefs.jpg" alt="Preferences" width="49%">
+</p>
+
 ## Install
 
 With [Homebrew](https://brew.sh) (Linux and macOS, formulas from
