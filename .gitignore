@@ -1,0 +1,4 @@
+/gosatsat
+/gosatsat.exe
+*.png
+!Resources/*.png

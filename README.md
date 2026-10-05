@@ -1,0 +1,108 @@
+# SatSat
+
+SatSat (module `gosatsat`) is a native satellite pass tracker for the desktop,
+written in Go with
+[Shirei](https://go.hasen.dev/shirei). It is a native port of the `websat` web
+app: predict upcoming passes for the satellites you follow, see them on a world
+map, watch your sky live, and inspect any pass in detail.
+
+Orbit propagation uses [`github.com/akhenakh/sgp4`](https://github.com/akhenakh/sgp4);
+the map is rendered with
+[`github.com/akhenakh/maprender`](https://github.com/akhenakh/maprender).
+
+The look and feel is inspired by the author's historical **SatSat** iOS app
+(`./satsat`): navy chrome, red accents, white panels, a dashed-crosshair polar
+sky with red cardinals, a green-to-red pass path, and blue live-satellite
+markers. The original icon and satellite artwork ship in `Resources/`.
+
+## Features
+
+- **Passes** — sortable list of the next 72 hours of passes for your tracked
+  satellites, with a live countdown and a "next pass" card. Click a pass for
+  the full detail view.
+- **Map** — world map (Mapbox GL style via `maprender`) with the current
+  sub-satellite point of every tracked satellite and your own location. The
+  base map is rendered once and cached; only the satellite markers move.
+  Falls back to a graticule if tiles are unavailable.
+- **Sky** — live polar radar of your sky, refreshed about once per second, with
+  every tracked satellite above the horizon.
+- **Pass detail** — polar pass plot, AOS/LOS/max-elevation facts, transponder
+  frequencies at AOS/LOS with Doppler correction (uplink pre-corrected), and
+  the sampled look-angle table.
+- **Preferences** — location (city list or lat/lng), tracked satellites,
+  minimum peak elevation, refresh interval, TLE source URLs, transponder source
+  URLs, and dark mode.
+
+The layout is responsive: pass detail switches between side-by-side and stacked,
+Preferences uses one or two columns, the Live plot scales with the window, and
+the map fills the available width.
+- **Multiple data sources**, merged; each source's failures are reported without
+  discarding the others. CelesTrak's GP **CSV (OMM)** and **OMM JSON** formats
+  are supported (as is plain TLE text from AMSAT), so catalog numbers above
+  99999 work.
+- **First-run onboarding** — pick a location and satellites; everything is
+  saved to a JSON config under the XDG user config directory
+  (`~/.config/gosatsat/config.json` on Linux).
+- **Offline-friendly start** — the last successful TLE/transponder download is
+  cached next to the config (`tle-cache.json`) and loaded at startup, so the
+  app is usable immediately while a fresh download runs in the background.
+
+## Data sources and CelesTrak policy
+
+Orbital elements come from the URLs in the config. The default set is:
+
+- CelesTrak GP **CSV** (`gp.php?...FORMAT=csv`), which uses the OMM fields and
+  supports catalog numbers above 99999; **OMM JSON** (`FORMAT=json`) is also
+  understood.
+- AMSAT daily TLE (`https://www.amsat.org/tle/dailytle.txt`), plain TLE text.
+
+The format is detected from the response, so any of the three can be added.
+CSV and JSON are parsed by the `sgp4` library (`ParseOMMsCSV` / `ParseOMMs`),
+which builds element sets directly from the numeric catalog id.
+
+To respect CelesTrak's [usage policy](https://celestrak.org/usage-policy.php),
+SatSat keeps at least **2 hours** between requests: it loads the cached elements
+instead of refetching when they are fresh, refuses a manual refresh inside the
+2-hour window (showing a status-bar notice), and the refresh-interval choices
+start at 2 h. Old CelesTrak `FORMAT=tle` URLs in an existing config are
+migrated to `FORMAT=csv` automatically.
+
+## Build and run
+
+```sh
+go run .
+go run . --dark
+```
+
+### Offline demo
+
+`--demo` loads deterministic orbital data so the app is fully populated
+without a network connection — handy for screenshots and for trying the UI:
+
+```sh
+go run . --demo
+go run . --demo --tab sky
+go run . --demo --detail
+go run . --demo --view prefs
+go run . --demo --view onboarding --step 1
+```
+
+### Headless snapshots
+
+Any screen can be rendered headlessly to a PNG (no window or GPU needed):
+
+```sh
+go run . --demo --png /tmp/main.png
+go run . --demo --detail --png /tmp/detail.png
+go run . --demo --tab map --png /tmp/map.png
+go run . --demo --tab sky --png /tmp/sky.png
+```
+
+## Tests
+
+```sh
+go test ./...
+go vet ./...
+```
+
+See [PLAN.md](PLAN.md) for the architecture and implementation notes.
