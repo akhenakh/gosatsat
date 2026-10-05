@@ -10,10 +10,10 @@ Orbit propagation uses [`github.com/akhenakh/sgp4`](https://github.com/akhenakh/
 the map is rendered with
 [`github.com/akhenakh/maprender`](https://github.com/akhenakh/maprender).
 
-The look and feel is inspired by the author's historical **SatSat** iOS app
-(`./satsat`): navy chrome, red accents, white panels, a dashed-crosshair polar
-sky with red cardinals, a green-to-red pass path, and blue live-satellite
-markers. The original icon and satellite artwork ship in `Resources/`.
+The look and feel is inspired by the author's historical **SatSat** iOS app:
+navy chrome, red accents, white panels, a dashed-crosshair polar sky with red
+cardinals, a green-to-red pass path, and blue live-satellite markers. The
+original icon and satellite artwork ship in `Resources/`.
 
 ## Features
 
@@ -31,7 +31,11 @@ markers. The original icon and satellite artwork ship in `Resources/`.
   the sampled look-angle table.
 - **Preferences** — location (city list or lat/lng), tracked satellites,
   minimum peak elevation, refresh interval, TLE source URLs, transponder source
-  URLs, and dark mode.
+  URLs, dark mode, and pass notifications.
+- **Pass notifications** — an operating-system notification 5 minutes before a
+  tracked pass starts (Linux via `notify-send`/libnotify, macOS via
+  `osascript`, Windows via a PowerShell notification). Toggle it in
+  Preferences.
 
 The layout is responsive: pass detail switches between side-by-side and stacked,
 Preferences uses one or two columns, the Live plot scales with the window, and
@@ -104,5 +108,3 @@ go run . --demo --tab sky --png /tmp/sky.png
 go test ./...
 go vet ./...
 ```
-
-See [PLAN.md](PLAN.md) for the architecture and implementation notes.

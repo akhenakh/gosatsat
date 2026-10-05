@@ -146,6 +146,7 @@ func startNowTicker() {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
+			var notice *passNotice
 			WithFrameLock(func() {
 				st.now = time.Now()
 				for _, sat := range st.sats {
@@ -159,7 +160,11 @@ func startNowTicker() {
 						sat.PosTime = st.now
 					}
 				}
+				notice = st.duePassNotification(st.now)
 			})
+			if notice != nil {
+				announcePass(notice)
+			}
 			RequestNextFrame()
 		}
 	}()

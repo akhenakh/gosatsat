@@ -13,12 +13,13 @@ import (
 // openPrefs builds an editable draft from the current configuration.
 func (s *State) openPrefs() {
 	d := &prefsDraft{
-		minElevation: s.cfg.MinElevation,
-		refreshHours: s.cfg.RefreshHours,
-		darkMode:     s.cfg.DarkMode,
-		tleSources:   append([]string(nil), s.cfg.TleSources...),
-		xpSources:    append([]string(nil), s.cfg.TransponderSources...),
-		tracked:      map[int]bool{},
+		minElevation:  s.cfg.MinElevation,
+		refreshHours:  s.cfg.RefreshHours,
+		darkMode:      s.cfg.DarkMode,
+		notifications: s.cfg.notifyEnabled(),
+		tleSources:    append([]string(nil), s.cfg.TleSources...),
+		xpSources:     append([]string(nil), s.cfg.TransponderSources...),
+		tracked:       map[int]bool{},
 	}
 	for _, id := range s.cfg.TrackedSats {
 		d.tracked[id] = true
@@ -67,6 +68,7 @@ func (s *State) savePrefs() {
 	s.cfg.MinElevation = d.minElevation
 	s.cfg.RefreshHours = d.refreshHours
 	s.cfg.DarkMode = d.darkMode
+	s.cfg.Notifications = boolPtr(d.notifications)
 	s.cfg.TleSources = nonEmpty(d.tleSources)
 	s.cfg.TransponderSources = nonEmpty(d.xpSources)
 	s.cfg.TrackedSats = tracked
@@ -357,6 +359,7 @@ func urlListEditor(list *[]string, keyPrefix string) {
 func appearanceSection(d *prefsDraft) {
 	sectionHeader("Appearance")
 	CheckBox(&d.darkMode, "Dark mode")
+	CheckBox(&d.notifications, "Notify 5 minutes before a pass")
 	Container(Attrs(Row, Gap(10), CrossMid), func() {
 		Label("Refresh data every", FontSize(13))
 		SegmentedControl(&d.refreshHours, func() {

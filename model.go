@@ -67,6 +67,9 @@ type Pass struct {
 	DataPoints []sgp4.PassDataPoint
 	DataLoaded bool
 
+	// notified is set once the "pass soon" OS notification has been sent.
+	notified bool
+
 	plot     *image.RGBA
 	plotSize int
 	plotDark bool
@@ -145,6 +148,7 @@ type prefsDraft struct {
 	xpSources     []string
 	refreshHours  int
 	darkMode      bool
+	notifications bool
 	cityQuery     string
 	satQuery      string
 	activeOnly    bool

@@ -208,6 +208,35 @@ func TestCloneTLEChecksums(t *testing.T) {
 	}
 }
 
+func TestDuePassNotification(t *testing.T) {
+	loadDemoData()
+	st.cfg.Notifications = boolPtr(true)
+	now := st.now
+	mk := func(aos time.Time) *Pass {
+		return &Pass{NoradID: 1, Name: "TEST", Details: sgp4.PassDetails{AOS: aos, LOS: aos.Add(10 * time.Minute)}}
+	}
+	soon := mk(now.Add(4 * time.Minute))
+	later := mk(now.Add(30 * time.Minute))
+	st.passes = []*Pass{soon, later}
+
+	n := st.duePassNotification(now)
+	if n == nil || !n.aos.Equal(soon.Details.AOS) {
+		t.Fatalf("expected the soon pass to be announced, got %+v", n)
+	}
+	if again := st.duePassNotification(now); again != nil {
+		t.Fatalf("a pass should only be announced once: %+v", again)
+	}
+	if n2 := st.duePassNotification(now.Add(2 * time.Minute)); n2 != nil {
+		t.Fatalf("the later pass is not due yet: %+v", n2)
+	}
+
+	st.cfg.Notifications = boolPtr(false)
+	st.passes = []*Pass{mk(now.Add(time.Minute))}
+	if st.duePassNotification(now) != nil {
+		t.Fatal("notifications are disabled")
+	}
+}
+
 func TestCountdownUsesStateClock(t *testing.T) {
 	loadDemoData()
 	future := st.now.Add(2*time.Hour + 5*time.Minute)

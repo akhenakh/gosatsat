@@ -38,7 +38,14 @@ type Config struct {
 	TransponderSources []string        `json:"transponderSources"`
 	RefreshHours       int             `json:"refreshHours"`
 	DarkMode           bool            `json:"darkMode"`
+	// Notifications is a pointer so a missing field can default to enabled.
+	Notifications *bool `json:"notifications,omitempty"`
 }
+
+// notifyEnabled reports whether OS notifications for upcoming passes are on.
+func (c Config) notifyEnabled() bool { return c.Notifications == nil || *c.Notifications }
+
+func boolPtr(v bool) *bool { return &v }
 
 func defaultConfig() Config {
 	return Config{
@@ -54,6 +61,7 @@ func defaultConfig() Config {
 		TransponderSources: []string{
 			"http://www.ne.jp/asahi/hamradio/je9pel/satslist.csv",
 		},
+		Notifications: boolPtr(true),
 	}
 }
 
@@ -82,6 +90,9 @@ func (c *Config) normalize() {
 	}
 	if len(c.TransponderSources) == 0 {
 		c.TransponderSources = def.TransponderSources
+	}
+	if c.Notifications == nil {
+		c.Notifications = def.Notifications
 	}
 }
 
