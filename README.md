@@ -18,7 +18,6 @@ original icon and satellite artwork ship in `Resources/`.
 ## Screenshots
 
 <p align="center">
-  <img src="img/calendar.jpg" alt="Calendar of upcoming passes" width="49%">
   <img src="img/map.jpg" alt="World map with the tracked satellites" width="49%">
 </p>
 <p align="center">
