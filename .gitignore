@@ -6,3 +6,4 @@
 /shirei.md
 *.png
 !Resources/*.png
+!img/*.png
