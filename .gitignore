@@ -1,4 +1,8 @@
 /gosatsat
 /gosatsat.exe
+/satsat
+/satsat.exe
+/dist/
+/shirei.md
 *.png
 !Resources/*.png

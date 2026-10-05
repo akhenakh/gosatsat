@@ -1,0 +1,62 @@
+version: 2
+
+project_name: satsat
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  # Everything is CGO-free: shirei's desktop backends use purego (X11, Wayland,
+  # Cocoa, Win32), so every target cross compiles from Linux without an SDK.
+  - id: satsat
+    main: .
+    binary: satsat
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: satsat
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+    files:
+      # app.ResourcePath looks for <exeDir>/Resources, so ship it next to the binary
+      - Resources/*
+      - README.md
+
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  footer: >-
+
+    ---
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).

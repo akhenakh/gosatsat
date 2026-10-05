@@ -15,6 +15,25 @@ navy chrome, red accents, white panels, a dashed-crosshair polar sky with red
 cardinals, a green-to-red pass path, and blue live-satellite markers. The
 original icon and satellite artwork ship in `Resources/`.
 
+## Install
+
+With [Homebrew](https://brew.sh) (Linux and macOS, formulas from
+[akhenakh/homebrew-tap](https://github.com/akhenakh/homebrew-tap)):
+
+```sh
+brew install akhenakh/tap/satsat
+```
+
+Or from source (requires Go):
+
+```sh
+go install github.com/akhenakh/gosatsat@latest
+```
+
+Prebuilt archives for Linux, macOS, and Windows (amd64/arm64) are attached to
+each [release](https://github.com/akhenakh/gosatsat/releases). The `Resources/`
+directory must stay next to the executable.
+
 ## Features
 
 - **Passes** — sortable list of the next 72 hours of passes for your tracked
