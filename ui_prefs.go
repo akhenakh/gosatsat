@@ -334,10 +334,10 @@ func lastFetchLabel() string {
 
 func urlListEditor(list *[]string, keyPrefix string) {
 	del := -1
-	Container(Attrs(Gap(6)), func() {
+	Container(Attrs(Expand, Gap(6)), func() {
 		for i := range *list {
-			ContainerWithKey(fmt.Sprintf("%s-%d", keyPrefix, i), Attrs(Row, Gap(6), CrossMid), func() {
-				Container(Attrs(Grow(1)), func() {
+			ContainerWithKey(fmt.Sprintf("%s-%d", keyPrefix, i), Attrs(Row, Expand, Gap(6), CrossMid), func() {
+				Container(Attrs(Grow(1), Expand), func() {
 					a := DefaultTextInputAttrs()
 					a.NoAutoFocus = true
 					TextInputExt(&(*list)[i], a)
