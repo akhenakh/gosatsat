@@ -46,7 +46,6 @@ class ${CLASS} < Formula
   desc "${DESC}"
   homepage "https://github.com/${REPO}"
   license "${LICENSE}"
-  version "${VERSION}"
 
   on_macos do
     on_arm do
