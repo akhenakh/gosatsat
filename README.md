@@ -52,8 +52,13 @@ go install github.com/akhenakh/gosatsat@latest
 ```
 
 Prebuilt archives for Linux, macOS, and Windows (amd64/arm64) are attached to
-each [release](https://github.com/akhenakh/gosatsat/releases). The `Resources/`
-directory must stay next to the executable.
+each [release](https://github.com/akhenakh/gosatsat/releases). On Linux and
+Windows the archive contains the `satsat` binary next to its `Resources/`
+directory, which must stay together.
+
+On macOS the archive also contains **`SatSat.app`** — drag it into
+`/Applications`. The bundle is unsigned, so the first launch needs
+right-click → Open (or `xattr -dr com.apple.quarantine SatSat.app`).
 
 ## Features
 

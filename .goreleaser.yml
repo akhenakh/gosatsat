@@ -6,9 +6,13 @@ before:
   hooks:
     - go mod tidy
 
+# Everything is CGO-free: shirei's desktop backends use purego (X11, Wayland,
+# Cocoa, Win32), so every target cross compiles from Linux without an SDK.
+#
+# The two macOS targets are separate builds so each can assemble its own
+# SatSat.app in a distinct directory; GoReleaser's archive `files` entries are
+# not templated per target, so a per-build directory keeps them apart.
 builds:
-  # Everything is CGO-free: shirei's desktop backends use purego (X11, Wayland,
-  # Cocoa, Win32), so every target cross compiles from Linux without an SDK.
   - id: satsat
     main: .
     binary: satsat
@@ -20,14 +24,50 @@ builds:
       - -s -w
     goos:
       - linux
-      - darwin
       - windows
     goarch:
       - amd64
       - arm64
 
+  - id: satsat-darwin-amd64
+    main: .
+    binary: satsat
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    hooks:
+      post:
+        - sh packaging/macos/bundle.sh {{ .Path }} dist/app-amd64 {{ .Version }}
+
+  - id: satsat-darwin-arm64
+    main: .
+    binary: satsat
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos:
+      - darwin
+    goarch:
+      - arm64
+    hooks:
+      post:
+        - sh packaging/macos/bundle.sh {{ .Path }} dist/app-arm64 {{ .Version }}
+
 archives:
+  # Linux + Windows: bare binary next to its Resources directory.
   - id: satsat
+    ids:
+      - satsat
     formats: [tar.gz]
     format_overrides:
       - goos: windows
@@ -39,7 +79,30 @@ archives:
       {{- if eq .Arch "amd64" }}x86_64
       {{- else }}{{ .Arch }}{{ end }}
     files:
-      # app.ResourcePath looks for <exeDir>/Resources, so ship it next to the binary
+      - Resources/*
+      - README.md
+
+  # macOS: the application bundle (plus the bare binary and Resources for
+  # command-line use and the Homebrew formula).
+  - id: satsat-darwin-amd64
+    ids:
+      - satsat-darwin-amd64
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_Darwin_x86_64"
+    files:
+      - src: dist/app-amd64/SatSat.app
+        dst: SatSat.app
+      - Resources/*
+      - README.md
+
+  - id: satsat-darwin-arm64
+    ids:
+      - satsat-darwin-arm64
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_Darwin_arm64"
+    files:
+      - src: dist/app-arm64/SatSat.app
+        dst: SatSat.app
       - Resources/*
       - README.md
 
