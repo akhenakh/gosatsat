@@ -1,19 +1,27 @@
 # SatSat
 
-SatSat (module `gosatsat`) is a native satellite pass tracker for the desktop,
-written in Go with
-[Shirei](https://go.hasen.dev/shirei). It is a native port of the `websat` web
-app: predict upcoming passes for the satellites you follow, see them on a world
-map, watch your sky live, and inspect any pass in detail.
+SatSat is a native satellite pass tracker for the desktop, written in Go with
+[Shirei](https://go.hasen.dev/shirei). It is the successor to the **SatSat**
+iOS app — long removed from the App Store and preserved at
+[satsat.inair.space](https://satsat.inair.space/) — and the desktop companion to
+the [websat](https://websat.inair.space) web tracker (module `gosatsat`).
+Predict the upcoming passes of the satellites you follow, watch your sky live,
+follow them on a world map, and inspect any pass in detail.
+
+SatSat is aimed primarily at **radio amateurs**: beyond the polar sky view and
+the pass calendar, it lists each satellite's transponders (uplink, downlink,
+beacon, mode, callsign) and shows the **Doppler-shifted frequencies at AOS and
+LOS**, plus the pre-corrected uplink transmit frequency, so you know exactly
+where to tune before a pass.
 
 Orbit propagation uses [`github.com/akhenakh/sgp4`](https://github.com/akhenakh/sgp4);
 the map is rendered with
 [`github.com/akhenakh/maprender`](https://github.com/akhenakh/maprender).
 
-The look and feel is inspired by the author's historical **SatSat** iOS app:
-navy chrome, red accents, white panels, a dashed-crosshair polar sky with red
-cardinals, a green-to-red pass path, and blue live-satellite markers. The
-original icon and satellite artwork ship in `Resources/`.
+The look and feel revives the original iOS app: navy chrome, red accents,
+white panels, a dashed-crosshair polar sky with red cardinals, a green-to-red
+pass path, and blue live-satellite markers. The original icon and satellite
+artwork ship in `Resources/`.
 
 ## Screenshots
 
