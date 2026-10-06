@@ -13,6 +13,31 @@ func (s *State) openPassDetail(p *Pass) {
 	s.view = viewPassDetail
 }
 
+// openSatDetail opens the detail of the pass currently in progress for sat, or
+// failing that the next upcoming pass. The detail view is pass-centric, so a
+// satellite with no known pass is a no-op.
+func (s *State) openSatDetail(sat *Sat) {
+	if sat == nil {
+		return
+	}
+	var next *Pass
+	for _, p := range s.passes {
+		if p.NoradID != sat.NoradID {
+			continue
+		}
+		if !p.Details.AOS.After(s.now) && p.Details.LOS.After(s.now) {
+			s.openPassDetail(p)
+			return
+		}
+		if p.Details.AOS.After(s.now) && (next == nil || p.Details.AOS.Before(next.Details.AOS)) {
+			next = p
+		}
+	}
+	if next != nil {
+		s.openPassDetail(next)
+	}
+}
+
 func passDetailView() {
 	p := st.selPass
 	if p == nil {

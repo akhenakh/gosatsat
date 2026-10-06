@@ -110,6 +110,50 @@ func TestSkyVisibilityIsTimezoneIndependent(t *testing.T) {
 	}
 }
 
+// TestOpenSatDetail covers resolving a live satellite to its pass: prefer the
+// pass in progress, otherwise the next upcoming one, and do nothing when the
+// satellite has no known pass.
+func TestOpenSatDetail(t *testing.T) {
+	loadDemoData()
+	sat := st.sats[25544]
+	if sat == nil {
+		t.Fatal("demo ISS missing")
+	}
+	now := st.now
+	mk := func(norad int, aos, los time.Time) *Pass {
+		return &Pass{NoradID: norad, Name: sat.Name, Details: sgp4.PassDetails{AOS: aos, LOS: los}}
+	}
+	sooner := mk(sat.NoradID, now.Add(10*time.Minute), now.Add(20*time.Minute))
+	later := mk(sat.NoradID, now.Add(40*time.Minute), now.Add(50*time.Minute))
+	inProgress := mk(sat.NoradID, now.Add(-5*time.Minute), now.Add(5*time.Minute))
+	otherSat := mk(99999, now.Add(-1*time.Minute), now.Add(9*time.Minute))
+	st.passes = []*Pass{later, sooner, otherSat}
+
+	// No pass for this satellite -> no-op.
+	st.view = viewMain
+	st.openSatDetail(nil)
+	st.openSatDetail(&Sat{NoradID: 12345})
+	if st.view != viewMain {
+		t.Fatal("a satellite without a pass should not open the detail view")
+	}
+
+	// No in-progress pass -> the next upcoming pass.
+	st.selPass = nil
+	st.openSatDetail(sat)
+	if st.view != viewPassDetail || st.selPass != sooner {
+		t.Fatalf("expected the next pass, got view=%d sel=%+v", st.view, st.selPass)
+	}
+
+	// In-progress pass wins over the next one.
+	st.passes = append(st.passes, inProgress)
+	st.selPass = nil
+	st.view = viewMain
+	st.openSatDetail(sat)
+	if st.view != viewPassDetail || st.selPass != inProgress {
+		t.Fatalf("expected the in-progress pass, got view=%d sel=%+v", st.view, st.selPass)
+	}
+}
+
 func TestConfigRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)

@@ -50,6 +50,12 @@ func skyView() {
 					}
 					for _, e := range entries {
 						ContainerWithKey(e.sat, Attrs(Row, Expand, FixHeight(44), CrossMid, Gap(8), Pad2(4, 6), Corners(4)), func() {
+							if IsHovered() {
+								ModAttrs(Background(223, 40, 95, 1))
+							}
+							if PressAction() {
+								st.openSatDetail(e.sat)
+							}
 							drawElevationBadge(e.el)
 							Container(Attrs(Grow(1), Gap(1)), func() {
 								Label(e.sat.Name, FontSize(13), FontWeight(WeightSemibold))
