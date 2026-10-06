@@ -102,8 +102,7 @@ func prefsView() {
 	Container(Attrs(Viewport), func() {
 		Container(Attrs(Row, Expand, FixHeight(52), UseSurface(SurfaceToolbar), Pad2(0, 14), Gap(10), CrossMid), func() {
 			if Button(TypArrowLeft, "Back") {
-				st.prefs = nil
-				st.view = viewMain
+				st.goBack()
 			}
 			Label("Preferences", FontSize(17), FontWeight(WeightBold))
 			Filler(1)

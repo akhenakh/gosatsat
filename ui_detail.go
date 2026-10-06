@@ -47,7 +47,7 @@ func passDetailView() {
 	Container(Attrs(Viewport), func() {
 		Container(Attrs(Row, Expand, FixHeight(52), UseSurface(SurfaceToolbar), Pad2(0, 14), Gap(10), CrossMid), func() {
 			if Button(TypArrowLeft, "Back") {
-				st.view = viewMain
+				st.goBack()
 			}
 			Icon(TypCalendar, FontSize(18))
 			Label(fmt.Sprintf("%s (%d)", p.Name, p.NoradID), FontSize(17), FontWeight(WeightBold))

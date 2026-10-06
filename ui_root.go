@@ -13,6 +13,12 @@ func RootView() {
 	SetDarkMode(st.cfg.DarkMode)
 	ModAttrs(UseSurface(SurfaceCanvas))
 
+	// Escape goes back: it closes the top of the view stack, matching the
+	// Back buttons (detail view, preferences).
+	if GetFrameInput().Key == KeyEscape {
+		st.goBack()
+	}
+
 	switch st.view {
 	case viewLoading:
 		loadingView()
@@ -25,6 +31,22 @@ func RootView() {
 	default:
 		mainView()
 	}
+}
+
+// goBack closes the top of the view stack, mirroring the Back button. It
+// reports whether a view was closed.
+func (s *State) goBack() bool {
+	switch s.view {
+	case viewPassDetail:
+		s.selPass = nil
+		s.view = viewMain
+		return true
+	case viewPrefs:
+		s.prefs = nil
+		s.view = viewMain
+		return true
+	}
+	return false
 }
 
 func loadingView() {

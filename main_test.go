@@ -154,6 +154,48 @@ func TestOpenSatDetail(t *testing.T) {
 	}
 }
 
+// TestGoBack covers closing the top of the view stack: the detail view and
+// preferences return to the main view, anything else is a no-op.
+func TestGoBack(t *testing.T) {
+	st.view = viewPassDetail
+	st.selPass = &Pass{}
+	if !st.goBack() || st.view != viewMain || st.selPass != nil {
+		t.Fatal("goBack should close the detail view")
+	}
+
+	st.openPrefs()
+	if !st.goBack() || st.view != viewMain || st.prefs != nil {
+		t.Fatal("goBack should close preferences")
+	}
+
+	st.view = viewMain
+	if st.goBack() {
+		t.Fatal("goBack on the main view should be a no-op")
+	}
+}
+
+// TestEscapeGoesBack drives a real frame with the Escape key so the RootView
+// wiring, not just goBack, is covered.
+func TestEscapeGoesBack(t *testing.T) {
+	loadDemoData()
+
+	st.selPass = st.passes[0]
+	st.view = viewPassDetail
+
+	shirei.ResetInputSession()
+	h := shirei.GetHost()
+	h.WindowSize = shirei.Vec2{900, 620}
+	h.WindowScale = 1
+	h.ComfortScale = 1
+	h.HardwareKeyboard = true
+
+	shirei.GetFrameInput().Key = shirei.KeyEscape
+	shirei.RunFrameFn(RootView)
+	if st.view != viewMain || st.selPass != nil {
+		t.Fatalf("Escape should close the detail view, got view=%d", st.view)
+	}
+}
+
 func TestConfigRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)
