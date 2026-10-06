@@ -260,41 +260,20 @@ func skyPlotImage(size int, loc sgp4.Location, sats []*Sat, now time.Time, dark 
 
 	drawSkyGrid(img, size, c)
 
-	visible := 0
-	for _, sat := range sats {
-		if sat.TLE == nil {
-			continue
-		}
-		eci, err := sat.TLE.FindPositionAtTime(now)
-		if err != nil {
-			continue
-		}
-		sv := &sgp4.StateVector{
-			X: eci.Position.X, Y: eci.Position.Y, Z: eci.Position.Z,
-			VX: eci.Velocity.X, VY: eci.Velocity.Y, VZ: eci.Velocity.Z,
-		}
-		obs, err := sv.GetLookAngle(&loc, now)
-		if err != nil {
-			continue
-		}
-		az := obs.LookAngles.Azimuth
-		el := obs.LookAngles.Elevation
-		if el < 0 {
-			continue
-		}
-		visible++
-		x, y := polarXY(cx, cy, radius, az, el)
+	entries := visibleSatellites(loc, sats, now)
+	for _, e := range entries {
+		x, y := polarXY(cx, cy, radius, e.az, e.el)
 		// Blue "×" marker, as in the original live view.
 		drawLine(img, x-4, y-4, x+4, y+4, c.marker, 2)
 		drawLine(img, x-4, y+4, x+4, y-4, c.marker, 2)
-		drawText(img, x+8, y+4, 11, c.markerLabel, sat.Name)
+		drawText(img, x+8, y+4, 11, c.markerLabel, e.sat.Name)
 	}
 
 	noun := "satellites"
-	if visible == 1 {
+	if len(entries) == 1 {
 		noun = "satellite"
 	}
-	drawText(img, 8, 18, 12, c.text, fmt.Sprintf("%d %s above horizon", visible, noun))
+	drawText(img, 8, 18, 12, c.text, fmt.Sprintf("%d %s above horizon", len(entries), noun))
 	drawText(img, 8, float64(size)-8, 11, c.dim, "Azimuth / Elevation at "+now.Local().Format("15:04:05"))
 	return img
 }

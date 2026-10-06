@@ -69,7 +69,14 @@ func drawElevationBadge(el float64) {
 	})
 }
 
+// visibleSatellites returns the tracked satellites above the horizon at now.
+//
+// sgp4 derives Greenwich sidereal time (and therefore the observer's
+// Earth-fixed position) from the wall-clock fields of the time it is given, so
+// it must receive UTC. Passing a local time rotates the observer by the local
+// UTC offset and reports the wrong satellites; normalize here at the boundary.
 func visibleSatellites(loc sgp4.Location, sats []*Sat, now time.Time) []skyEntry {
+	now = now.UTC()
 	var out []skyEntry
 	for _, sat := range sats {
 		if sat.TLE == nil {

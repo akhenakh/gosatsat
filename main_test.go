@@ -2,6 +2,7 @@ package main
 
 import (
 	"image"
+	"math"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -69,6 +70,43 @@ func TestSkyPlot(t *testing.T) {
 	img := skyPlotImage(240, st.location(), st.trackedSats(), st.now, false)
 	if img == nil || img.Bounds() != image.Rect(0, 0, 240, 240) {
 		t.Fatalf("bad sky plot: %v", img)
+	}
+}
+
+// TestSkyVisibilityIsTimezoneIndependent guards the sgp4 look-angle contract:
+// GetLookAngle derives Greenwich sidereal time from the wall-clock fields of
+// the time it is handed, so the sky view must normalize to UTC. Otherwise a
+// local time value rotates the observer by the UTC offset and the Live tab
+// lists satellites that are not actually above the horizon.
+func TestSkyVisibilityIsTimezoneIndependent(t *testing.T) {
+	loadDemoData()
+	loc := st.location()
+	sats := st.trackedSats()
+
+	// Pick an instant where at least one tracked satellite is up.
+	var utc time.Time
+	for _, p := range st.passes {
+		if len(visibleSatellites(loc, sats, p.Details.MaxElevationTime)) > 0 {
+			utc = p.Details.MaxElevationTime
+			break
+		}
+	}
+	if utc.IsZero() {
+		t.Fatal("no visible satellite found in demo passes")
+	}
+
+	// The same instant expressed in a non-UTC zone must yield the same result.
+	other := utc.In(time.FixedZone("EDT", -4*3600))
+
+	a := visibleSatellites(loc, sats, utc)
+	b := visibleSatellites(loc, sats, other)
+	if len(a) != len(b) {
+		t.Fatalf("visible set depends on time zone: %d vs %d", len(a), len(b))
+	}
+	for i := range a {
+		if a[i].sat != b[i].sat || math.Abs(a[i].az-b[i].az) > 1e-9 || math.Abs(a[i].el-b[i].el) > 1e-9 {
+			t.Fatalf("look angles depend on time zone:\n utc   %+v\n local %+v", a[i], b[i])
+		}
 	}
 }
 
