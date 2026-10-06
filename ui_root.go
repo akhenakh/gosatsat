@@ -13,6 +13,11 @@ func RootView() {
 	SetDarkMode(st.cfg.DarkMode)
 	ModAttrs(UseSurface(SurfaceCanvas))
 
+	// Standard quit shortcuts: Ctrl+Q and Meta/Cmd+Q.
+	if isQuitCombo(ActiveCombo()) {
+		app.Quit()
+	}
+
 	// Escape goes back: it closes the top of the view stack, matching the
 	// Back buttons (detail view, preferences).
 	if GetFrameInput().Key == KeyEscape {
@@ -31,6 +36,12 @@ func RootView() {
 	default:
 		mainView()
 	}
+}
+
+// isQuitCombo reports whether c is the standard quit shortcut: Q held with
+// Ctrl (Linux/Windows), Meta/Super (Linux), or Cmd (macOS).
+func isQuitCombo(c KeyCombo) bool {
+	return c.Key == KeyQ && c.Mod&(ModCtrl|ModCmd|ModSuper) != 0
 }
 
 // goBack closes the top of the view stack, mirroring the Back button. It

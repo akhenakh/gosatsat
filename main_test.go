@@ -196,6 +196,33 @@ func TestEscapeGoesBack(t *testing.T) {
 	}
 }
 
+// TestIsQuitCombo pins the quit shortcut detection: Q with Ctrl, Meta/Super,
+// or Cmd.
+func TestIsQuitCombo(t *testing.T) {
+	quit := []shirei.KeyCombo{
+		shirei.Combo(shirei.KeyQ, shirei.ModCtrl),
+		shirei.Combo(shirei.KeyQ, shirei.ModSuper),
+		shirei.Combo(shirei.KeyQ, shirei.ModCmd),
+		shirei.Combo(shirei.KeyQ, shirei.ModCtrl|shirei.ModShift),
+	}
+	for _, c := range quit {
+		if !isQuitCombo(c) {
+			t.Errorf("%+v should quit", c)
+		}
+	}
+	no := []shirei.KeyCombo{
+		shirei.Combo(shirei.KeyQ, 0),
+		shirei.Combo(shirei.KeyQ, shirei.ModAlt),
+		shirei.Combo(shirei.KeyW, shirei.ModCtrl),
+		shirei.Combo(shirei.KeyEscape, shirei.ModCtrl),
+	}
+	for _, c := range no {
+		if isQuitCombo(c) {
+			t.Errorf("%+v should not quit", c)
+		}
+	}
+}
+
 func TestConfigRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)
