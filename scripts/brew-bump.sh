@@ -66,10 +66,13 @@ cask "${BIN}" do
 
   app "SatSat.app"
 
-  # The release bundle is unsigned; give it an ad-hoc signature at install time
-  # so macOS has a stable code identity for it.
+  # The release bundle is unsigned and un-notarised. Homebrew quarantines cask
+  # downloads, and Gatekeeper then refuses to launch it; an ad-hoc signature
+  # alone does not satisfy notarisation. Give the app a stable ad-hoc identity
+  # and clear Homebrew's quarantine flag so it launches.
   postflight_steps do
     run "/usr/bin/codesign", args: ["--force", "--sign", "-", "{{appdir}}/SatSat.app"]
+    run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{appdir}}/SatSat.app"]
   end
 end
 EOF
