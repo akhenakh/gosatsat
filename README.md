@@ -46,6 +46,8 @@ installs **`SatSat.app`** into `/Applications`:
 brew install --cask akhenakh/tap/satsat
 ```
 
+The cask ad-hoc signs the bundle at install time.
+
 Or from source (requires Go):
 
 ```sh
