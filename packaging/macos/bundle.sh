@@ -1,31 +1,35 @@
 #!/bin/sh
-# Assemble a macOS SatSat.app bundle from a built binary.
+# Complete the macOS SatSat.app bundle around an already-built binary.
 #
-# Usage: packaging/macos/bundle.sh <binary> <output-dir> [version]
+# Usage: packaging/macos/bundle.sh <binary> [version]
 #
-# Intended to run from a GoReleaser build post-hook on the darwin targets.
-# The version falls back to GORELEASER_CURRENT_TAG, then 0.0.0.
+# The darwin builds emit their binary into the bundle layout already:
+#
+#	<...>/SatSat.app/Contents/MacOS/satsat
+#
+# so the bundle root is derived from the binary path and the binary is left in
+# place. Everything else (Resources, Info.plist, PkgInfo) is written here.
+#
+# Intended to run from a GoReleaser build post-hook on the darwin targets, from
+# the repository root. The version falls back to GORELEASER_CURRENT_TAG, then
+# 0.0.0.
 set -eu
 
-BIN="${1:?usage: bundle.sh <binary> <output-dir> [version]}"
-OUTDIR="${2:?usage: bundle.sh <binary> <output-dir> [version]}"
+BIN="${1:?usage: bundle.sh <binary> [version]}"
 
-VERSION="${3:-${GORELEASER_CURRENT_TAG:-0.0.0}}"
+VERSION="${2:-${GORELEASER_CURRENT_TAG:-0.0.0}}"
 VERSION="${VERSION#v}"
 
-APP="$OUTDIR/SatSat.app"
-rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+CONTENTS="$(dirname "$(dirname "$BIN")")"
 
-cp "$BIN" "$APP/Contents/MacOS/satsat"
-chmod 0755 "$APP/Contents/MacOS/satsat"
+mkdir -p "$CONTENTS/Resources"
 
 # Inside a .app, Shirei looks for resources in Contents/Resources.
 cp Resources/icon.png Resources/icon.icns \
 	Resources/sat_marker.png Resources/sat_picto.png \
-	"$APP/Contents/Resources/"
+	"$CONTENTS/Resources/"
 
-cat >"$APP/Contents/Info.plist" <<PLIST
+cat >"$CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -58,4 +62,4 @@ cat >"$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-printf 'APPL????' >"$APP/Contents/PkgInfo"
+printf 'APPL????' >"$CONTENTS/PkgInfo"

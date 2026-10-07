@@ -38,8 +38,16 @@ artwork ship in `Resources/`.
 
 ## Install
 
-With [Homebrew](https://brew.sh) (Linux and macOS, formulas from
-[akhenakh/homebrew-tap](https://github.com/akhenakh/homebrew-tap)):
+With [Homebrew](https://brew.sh), from
+[akhenakh/homebrew-tap](https://github.com/akhenakh/homebrew-tap).
+
+On macOS this installs **`SatSat.app`** into `/Applications` (a cask):
+
+```sh
+brew install --cask akhenakh/tap/satsat
+```
+
+On Linux this installs the `satsat` command-line binary:
 
 ```sh
 brew install akhenakh/tap/satsat
@@ -56,7 +64,7 @@ each [release](https://github.com/akhenakh/gosatsat/releases). On Linux and
 Windows the archive contains the `satsat` binary next to its `Resources/`
 directory, which must stay together.
 
-On macOS the archive also contains **`SatSat.app`** — drag it into
+On macOS the archive contains only **`SatSat.app`** — drag it into
 `/Applications`. The bundle is unsigned, so the first launch needs
 right-click → Open (or `xattr -dr com.apple.quarantine SatSat.app`).
 

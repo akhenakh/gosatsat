@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Generate the Homebrew formula for a release and push it to akhenakh/homebrew-tap.
+# Generate the Homebrew packages for a release and push them to
+# akhenakh/homebrew-tap:
+#
+#   Casks/satsat.rb    macOS  -> installs SatSat.app into /Applications
+#   Formula/satsat.rb  Linux  -> installs the satsat command-line binary
 #
 # Usage: scripts/brew-bump.sh <tag>    (e.g. scripts/brew-bump.sh v1.0.0)
 #
@@ -38,7 +42,39 @@ for v in DARWIN_AMD64 DARWIN_ARM64 LINUX_AMD64 LINUX_ARM64; do
   fi
 done
 
+# macOS: a cask, so `app "SatSat.app"` can install the bundle into
+# /Applications. The macOS archives contain nothing but SatSat.app.
 cat > "$TMP/${BIN}.rb" <<EOF
+# typed: false
+# frozen_string_literal: true
+
+cask "${BIN}" do
+  version "${VERSION}"
+  sha256 arm:   "${DARWIN_ARM64}",
+         intel: "${DARWIN_AMD64}"
+
+  on_arm do
+    url "https://github.com/${REPO}/releases/download/${TAG}/${BIN}_${VERSION}_Darwin_arm64.tar.gz"
+  end
+  on_intel do
+    url "https://github.com/${REPO}/releases/download/${TAG}/${BIN}_${VERSION}_Darwin_x86_64.tar.gz"
+  end
+
+  name "SatSat"
+  desc "${DESC}"
+  homepage "https://github.com/${REPO}"
+  license "${LICENSE}"
+
+  depends_on macos: ">= :big_sur"
+
+  app "SatSat.app"
+end
+EOF
+
+# Linux: a formula for the command-line binary. It is Linux-only because the
+# macOS side is served by the cask above; naming it too keeps
+# `brew install satsat` working on Linux.
+cat > "$TMP/${BIN}-formula.rb" <<EOF
 # typed: false
 # frozen_string_literal: true
 
@@ -47,16 +83,7 @@ class ${CLASS} < Formula
   homepage "https://github.com/${REPO}"
   license "${LICENSE}"
 
-  on_macos do
-    on_arm do
-      url "https://github.com/${REPO}/releases/download/${TAG}/${BIN}_${VERSION}_Darwin_arm64.tar.gz"
-      sha256 "${DARWIN_ARM64}"
-    end
-    on_intel do
-      url "https://github.com/${REPO}/releases/download/${TAG}/${BIN}_${VERSION}_Darwin_x86_64.tar.gz"
-      sha256 "${DARWIN_AMD64}"
-    end
-  end
+  depends_on :linux
 
   on_linux do
     on_arm do
@@ -88,11 +115,12 @@ if [[ -n "${TAP_GITHUB_TOKEN:-}" ]]; then
 else
   git clone "git@github.com:akhenakh/homebrew-tap.git" "$TAP_DIR"
 fi
-mkdir -p "$TAP_DIR/Formula"
-cp "$TMP/${BIN}.rb" "$TAP_DIR/Formula/${BIN}.rb"
+mkdir -p "$TAP_DIR/Casks" "$TAP_DIR/Formula"
+cp "$TMP/${BIN}.rb" "$TAP_DIR/Casks/${BIN}.rb"
+cp "$TMP/${BIN}-formula.rb" "$TAP_DIR/Formula/${BIN}.rb"
 
 git -C "$TAP_DIR" config user.email "akh@inair.space"
 git -C "$TAP_DIR" config user.name "Fabrice Aneche"
-git -C "$TAP_DIR" add "Formula/${BIN}.rb"
-git -C "$TAP_DIR" commit -m "Brew formula update for ${BIN} ${TAG}" || true
+git -C "$TAP_DIR" add "Casks/${BIN}.rb" "Formula/${BIN}.rb"
+git -C "$TAP_DIR" commit -m "Brew cask and formula update for ${BIN} ${TAG}" || true
 git -C "$TAP_DIR" push origin main

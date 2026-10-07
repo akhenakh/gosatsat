@@ -9,9 +9,10 @@ before:
 # Everything is CGO-free: shirei's desktop backends use purego (X11, Wayland,
 # Cocoa, Win32), so every target cross compiles from Linux without an SDK.
 #
-# The two macOS targets are separate builds so each can assemble its own
-# SatSat.app in a distinct directory; GoReleaser's archive `files` entries are
-# not templated per target, so a per-build directory keeps them apart.
+# The darwin builds put their binary straight into the bundle layout
+# (SatSat.app/Contents/MacOS/satsat). GoReleaser always adds the build binary
+# to its archive, so this makes that unavoidable entry part of the .app: the
+# macOS archives end up containing SatSat.app and nothing else.
 builds:
   - id: satsat
     main: .
@@ -31,7 +32,7 @@ builds:
 
   - id: satsat-darwin-amd64
     main: .
-    binary: satsat
+    binary: SatSat.app/Contents/MacOS/satsat
     env:
       - CGO_ENABLED=0
     flags:
@@ -44,11 +45,11 @@ builds:
       - amd64
     hooks:
       post:
-        - sh packaging/macos/bundle.sh {{ .Path }} dist/app-amd64 {{ .Version }}
+        - sh packaging/macos/bundle.sh {{ .Path }} {{ .Version }}
 
   - id: satsat-darwin-arm64
     main: .
-    binary: satsat
+    binary: SatSat.app/Contents/MacOS/satsat
     env:
       - CGO_ENABLED=0
     flags:
@@ -61,7 +62,7 @@ builds:
       - arm64
     hooks:
       post:
-        - sh packaging/macos/bundle.sh {{ .Path }} dist/app-arm64 {{ .Version }}
+        - sh packaging/macos/bundle.sh {{ .Path }} {{ .Version }}
 
 archives:
   # Linux + Windows: bare binary next to its Resources directory.
@@ -82,29 +83,39 @@ archives:
       - Resources/*
       - README.md
 
-  # macOS: the application bundle (plus the bare binary and Resources for
-  # command-line use and the Homebrew formula).
+  # macOS: the application bundle and nothing else. The build binary is
+  # already at SatSat.app/Contents/MacOS/satsat and GoReleaser adds it to the
+  # archive with its directory intact (strip_binary_directory defaults to
+  # false); the `files` below complete the bundle around it.
   - id: satsat-darwin-amd64
     ids:
       - satsat-darwin-amd64
     formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_Darwin_x86_64"
+    # Keep the binary at SatSat.app/Contents/MacOS/satsat in the archive.
+    strip_binary_directory: false
     files:
-      - src: dist/app-amd64/SatSat.app
-        dst: SatSat.app
-      - Resources/*
-      - README.md
+      - src: dist/satsat-darwin-amd64_*/SatSat.app/Contents/Info.plist
+        dst: SatSat.app/Contents
+      - src: dist/satsat-darwin-amd64_*/SatSat.app/Contents/PkgInfo
+        dst: SatSat.app/Contents
+      - src: dist/satsat-darwin-amd64_*/SatSat.app/Contents/Resources/*
+        dst: SatSat.app/Contents/Resources
 
   - id: satsat-darwin-arm64
     ids:
       - satsat-darwin-arm64
     formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_Darwin_arm64"
+    # Keep the binary at SatSat.app/Contents/MacOS/satsat in the archive.
+    strip_binary_directory: false
     files:
-      - src: dist/app-arm64/SatSat.app
-        dst: SatSat.app
-      - Resources/*
-      - README.md
+      - src: dist/satsat-darwin-arm64_*/SatSat.app/Contents/Info.plist
+        dst: SatSat.app/Contents
+      - src: dist/satsat-darwin-arm64_*/SatSat.app/Contents/PkgInfo
+        dst: SatSat.app/Contents
+      - src: dist/satsat-darwin-arm64_*/SatSat.app/Contents/Resources/*
+        dst: SatSat.app/Contents/Resources
 
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
