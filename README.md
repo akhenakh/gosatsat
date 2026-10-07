@@ -1,10 +1,10 @@
 # SatSat
 
 SatSat is a native satellite pass tracker for the desktop, written in Go with
-[Shirei](https://go.hasen.dev/shirei). It is the successor to the **SatSat**
+[Shirei](https://go.hasen.dev/shirei). It is a port of the **SatSat**
 iOS app — long removed from the App Store and preserved at
 [satsat.inair.space](https://satsat.inair.space/) — and the desktop companion to
-the [websat](https://websat.inair.space) web tracker (module `gosatsat`).
+the [websat](https://websat.inair.space) web tracker (module `gosatsat`). UI is vibecoded.  
 Predict the upcoming passes of the satellites you follow, watch your sky live,
 follow them on a world map, and inspect any pass in detail.
 
