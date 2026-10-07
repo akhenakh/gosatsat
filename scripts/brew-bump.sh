@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Generate the Homebrew packages for a release and push them to
-# akhenakh/homebrew-tap:
+# Generate the Homebrew cask for a release and push it to
+# akhenakh/homebrew-tap.
 #
-#   Casks/satsat.rb    macOS  -> installs SatSat.app into /Applications
-#   Formula/satsat.rb  Linux  -> installs the satsat command-line binary
+#   Casks/satsat.rb    macOS -> installs SatSat.app into /Applications
+#
+# Linux is not served by Homebrew; Linux users grab the release archives from
+# GitHub. Any stale Formula/satsat.rb left in the tap is removed.
 #
 # Usage: scripts/brew-bump.sh <tag>    (e.g. scripts/brew-bump.sh v1.0.0)
 #
@@ -15,10 +17,8 @@ TAG="${1:?usage: $0 <tag>}"
 VERSION="${TAG#v}"
 
 BIN="satsat"
-CLASS="Satsat"
 REPO="akhenakh/gosatsat"
 DESC="Native satellite pass tracker"
-LICENSE="MIT"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -32,18 +32,16 @@ sha() {
 
 DARWIN_AMD64="$(sha "${BIN}_${VERSION}_Darwin_x86_64.tar.gz")"
 DARWIN_ARM64="$(sha "${BIN}_${VERSION}_Darwin_arm64.tar.gz")"
-LINUX_AMD64="$(sha "${BIN}_${VERSION}_Linux_x86_64.tar.gz")"
-LINUX_ARM64="$(sha "${BIN}_${VERSION}_Linux_arm64.tar.gz")"
 
-for v in DARWIN_AMD64 DARWIN_ARM64 LINUX_AMD64 LINUX_ARM64; do
+for v in DARWIN_AMD64 DARWIN_ARM64; do
   if [[ -z "${!v}" ]]; then
     echo "error: missing checksum for ${v}" >&2
     exit 1
   fi
 done
 
-# macOS: a cask, so `app "SatSat.app"` can install the bundle into
-# /Applications. The macOS archives contain nothing but SatSat.app.
+# The macOS archives contain nothing but SatSat.app, so `app "SatSat.app"`
+# installs the whole bundle into /Applications.
 cat > "$TMP/${BIN}.rb" <<EOF
 # typed: false
 # frozen_string_literal: true
@@ -64,48 +62,9 @@ cask "${BIN}" do
   desc "${DESC}"
   homepage "https://github.com/${REPO}"
 
-  depends_on macos: ">= :big_sur"
+  depends_on macos: :big_sur
 
   app "SatSat.app"
-end
-EOF
-
-# Linux: a formula for the command-line binary. It is Linux-only because the
-# macOS side is served by the cask above; naming it too keeps
-# `brew install satsat` working on Linux.
-cat > "$TMP/${BIN}-formula.rb" <<EOF
-# typed: false
-# frozen_string_literal: true
-
-class ${CLASS} < Formula
-  desc "${DESC}"
-  homepage "https://github.com/${REPO}"
-  license "${LICENSE}"
-
-  depends_on :linux
-
-  # url/sha256 stay at the top level so Homebrew can load the formula on every
-  # OS (test-bot validates it on macOS too); depends_on :linux above is what
-  # keeps it from installing there.
-  on_arm do
-    url "https://github.com/${REPO}/releases/download/${TAG}/${BIN}_${VERSION}_Linux_arm64.tar.gz"
-    sha256 "${LINUX_ARM64}"
-  end
-  on_intel do
-    url "https://github.com/${REPO}/releases/download/${TAG}/${BIN}_${VERSION}_Linux_x86_64.tar.gz"
-    sha256 "${LINUX_AMD64}"
-  end
-
-  def install
-    # app.ResourcePath resolves <exeDir>/Resources, so keep both together.
-    libexec.install "${BIN}"
-    libexec.install "Resources"
-    bin.install_symlink libexec/"${BIN}"
-  end
-
-  test do
-    system "#{bin}/${BIN}", "--help"
-  end
 end
 EOF
 
@@ -115,12 +74,13 @@ if [[ -n "${TAP_GITHUB_TOKEN:-}" ]]; then
 else
   git clone "git@github.com:akhenakh/homebrew-tap.git" "$TAP_DIR"
 fi
-mkdir -p "$TAP_DIR/Casks" "$TAP_DIR/Formula"
+mkdir -p "$TAP_DIR/Casks"
 cp "$TMP/${BIN}.rb" "$TAP_DIR/Casks/${BIN}.rb"
-cp "$TMP/${BIN}-formula.rb" "$TAP_DIR/Formula/${BIN}.rb"
+# The Linux formula is gone; drop it from the tap if a previous release left it.
+rm -f "$TAP_DIR/Formula/${BIN}.rb"
 
 git -C "$TAP_DIR" config user.email "akh@inair.space"
 git -C "$TAP_DIR" config user.name "Fabrice Aneche"
-git -C "$TAP_DIR" add "Casks/${BIN}.rb" "Formula/${BIN}.rb"
-git -C "$TAP_DIR" commit -m "Brew cask and formula update for ${BIN} ${TAG}" || true
+git -C "$TAP_DIR" add -A
+git -C "$TAP_DIR" commit -m "Brew cask update for ${BIN} ${TAG}" || true
 git -C "$TAP_DIR" push origin main
