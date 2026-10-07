@@ -52,10 +52,10 @@ cask "${BIN}" do
          intel: "${DARWIN_AMD64}"
 
   on_arm do
-    url "https://github.com/${REPO}/releases/download/${TAG}/${BIN}_${VERSION}_Darwin_arm64.tar.gz"
+    url "https://github.com/${REPO}/releases/download/v#{version}/${BIN}_#{version}_Darwin_arm64.tar.gz"
   end
   on_intel do
-    url "https://github.com/${REPO}/releases/download/${TAG}/${BIN}_${VERSION}_Darwin_x86_64.tar.gz"
+    url "https://github.com/${REPO}/releases/download/v#{version}/${BIN}_#{version}_Darwin_x86_64.tar.gz"
   end
 
   name "SatSat"
