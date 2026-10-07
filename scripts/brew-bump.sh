@@ -63,7 +63,6 @@ cask "${BIN}" do
   name "SatSat"
   desc "${DESC}"
   homepage "https://github.com/${REPO}"
-  license "${LICENSE}"
 
   depends_on macos: ">= :big_sur"
 
