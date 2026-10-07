@@ -48,6 +48,13 @@ brew install --cask akhenakh/tap/satsat
 
 The cask ad-hoc signs the bundle at install time.
 
+On Arch Linux and derivatives, `satsat` is packaged in the
+[AUR](https://aur.archlinux.org/packages/satsat):
+
+```sh
+paru -S satsat
+```
+
 Or from source (requires Go):
 
 ```sh
