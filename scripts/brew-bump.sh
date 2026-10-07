@@ -62,7 +62,7 @@ cask "${BIN}" do
   desc "${DESC}"
   homepage "https://github.com/${REPO}"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "SatSat.app"
 end
