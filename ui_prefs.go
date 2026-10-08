@@ -79,9 +79,11 @@ func (s *State) savePrefs() {
 	}
 	s.prefs = nil
 	s.view = viewMain
-	s.passesDirty = true
 	recomputePasses()
-	startFetch()
+	// Saving may change the source URLs, so ask for a refresh — through the
+	// same CelesTrak minimum-interval guard as the Refresh button, so repeated
+	// saves cannot hammer the endpoint.
+	requestRefresh()
 }
 
 func nonEmpty(in []string) []string {
