@@ -59,15 +59,25 @@ func maybeFetch() {
 }
 
 // startFetch downloads all TLE and transponder sources, merges them into the
-// stable store and recomputes passes.
+// stable store and recomputes passes. It runs both from the UI thread and from
+// the periodic refresh goroutine, so the fetching guard and the config snapshot
+// are taken under the frame lock.
 func startFetch() {
-	if st.fetching {
+	var cfg Config
+	started := false
+	WithFrameLock(func() {
+		if st.fetching {
+			return
+		}
+		st.fetching = true
+		st.fetchErrs = nil
+		st.fetchNotice = ""
+		cfg = st.cfg
+		started = true
+	})
+	if !started {
 		return
 	}
-	st.fetching = true
-	st.fetchErrs = nil
-	st.fetchNotice = ""
-	cfg := st.cfg
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)

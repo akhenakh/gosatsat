@@ -196,6 +196,31 @@ func TestEscapeGoesBack(t *testing.T) {
 	}
 }
 
+// TestStartFetchFromRefreshGoroutine guards the frame-lock contract: the
+// periodic refresh loop calls startFetch from a background goroutine, so the
+// fetching guard and the config snapshot must be taken under WithFrameLock.
+// Off the lock, startFetch writes st.fetching and reads st.cfg while the UI
+// thread reads both in the header and status bars.
+func TestStartFetchFromRefreshGoroutine(t *testing.T) {
+	loadDemoData()
+	// Loopback URLs so the fetch never reaches the network.
+	st.cfg.TleSources = []string{"http://127.0.0.1:1/tle"}
+	st.cfg.TransponderSources = []string{"http://127.0.0.1:1/sats.csv"}
+
+	refresh := make(chan struct{})
+	go func() {
+		for i := 0; i < 30; i++ {
+			maybeFetch()
+		}
+		close(refresh)
+	}()
+
+	for i := 0; i < 30; i++ {
+		shirei.RenderToImage(900, 620, RootView)
+	}
+	<-refresh
+}
+
 // TestIsQuitCombo pins the quit shortcut detection: Q with Ctrl, Meta/Super,
 // or Cmd.
 func TestIsQuitCombo(t *testing.T) {
