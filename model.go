@@ -54,7 +54,6 @@ type Sat struct {
 	// Live sub-satellite point, refreshed by the ticker.
 	Lat, Lng, Alt float64
 	HasPos        bool
-	PosTime       time.Time
 }
 
 // Pass is an app-owned stable predicted pass.

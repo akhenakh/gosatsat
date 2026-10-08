@@ -152,7 +152,10 @@ func startPassRefresh() {
 	}()
 }
 
-// startNowTicker keeps the wall clock and live satellite positions fresh.
+// startNowTicker keeps the wall clock and live satellite positions fresh. Only
+// tracked satellites are propagated: their positions are the ones the map and
+// sky views draw, and the full catalogue (~11k element sets) would cost far
+// more than a frame budget every second.
 func startNowTicker() {
 	go func() {
 		ticker := time.NewTicker(time.Second)
@@ -161,7 +164,7 @@ func startNowTicker() {
 			var notice *passNotice
 			WithFrameLock(func() {
 				st.now = time.Now()
-				for _, sat := range st.sats {
+				for _, sat := range st.trackedSats() {
 					if sat.TLE == nil {
 						continue
 					}
@@ -169,7 +172,6 @@ func startNowTicker() {
 					if ok {
 						sat.Lat, sat.Lng, sat.Alt = lat, lng, alt
 						sat.HasPos = true
-						sat.PosTime = st.now
 					}
 				}
 				notice = st.duePassNotification(st.now)

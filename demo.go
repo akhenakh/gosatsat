@@ -51,7 +51,7 @@ func loadDemoData() {
 
 	for _, sat := range st.sats {
 		if lat, lng, alt, ok := livePosition(sat.TLE, st.now); ok {
-			sat.Lat, sat.Lng, sat.Alt, sat.HasPos, sat.PosTime = lat, lng, alt, true, st.now
+			sat.Lat, sat.Lng, sat.Alt, sat.HasPos = lat, lng, alt, true
 		}
 	}
 
