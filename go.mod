@@ -7,6 +7,7 @@ require (
 	github.com/akhenakh/sgp4 v1.0.2
 	go.hasen.dev/shirei v0.8.0
 	golang.org/x/image v0.44.0
+	golang.org/x/text v0.40.0
 )
 
 require (
@@ -43,7 +44,6 @@ require (
 	go.hasen.dev/udplib v0.1.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
 	modernc.org/knuth v0.5.5 // indirect
 	modernc.org/token v1.1.0 // indirect
 	star-tex.org/x/tex v0.7.1 // indirect

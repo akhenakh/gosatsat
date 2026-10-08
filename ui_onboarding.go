@@ -79,12 +79,12 @@ func onboardCityPicker() {
 			TextInputExt(&st.obCityQuery, a)
 		})
 		Container(Attrs(Grow(1), Expand, Clip, Corners(6), BorderWidth(1), BorderColor(0, 0, 80, 1)), func() {
-			list := matchCities2(st.obCityQuery)
+			list := matchCities(st.obCityQuery)
 			if len(list) == 0 {
 				Container(Attrs(Viewport, Center), func() { Label("No matching city.") })
 				return
 			}
-			VirtualListView("ob-cities", len(list), func(i int) any { return list[i].Name }, func(i int, w float32) float32 { return 30 }, func(i int, w float32) {
+			VirtualListView("ob-cities", len(list), func(i int) any { return i }, func(i int, w float32) float32 { return 30 }, func(i int, w float32) {
 				c := list[i]
 				Container(Attrs(Row, Expand, FixHeight(30), CrossMid, Gap(8), Pad2(0, 10)), func() {
 					if IsHovered() {
@@ -94,10 +94,10 @@ func onboardCityPicker() {
 						st.obLat = strconv.FormatFloat(c.Lat, 'f', 5, 64)
 						st.obLng = strconv.FormatFloat(c.Lng, 'f', 5, 64)
 						st.obAlt = strconv.FormatFloat(c.Alt, 'f', 0, 64)
-						st.obCityName = c.Name
+						st.obCityName = cityLabel(c)
 						st.obUseCity = true
 					}
-					Label(c.Name, FontSize(13))
+					Label(cityLabel(c), FontSize(13))
 				})
 			})
 		})
@@ -129,14 +129,6 @@ func onboardCoordsPanel(fixed bool) {
 			st.obSatQuery = ""
 		}
 	})
-}
-
-func matchCities2(q string) []City {
-	q = strings.TrimSpace(q)
-	if q == "" {
-		return cities
-	}
-	return matchCities(q)
 }
 
 func onboardSatellites() {

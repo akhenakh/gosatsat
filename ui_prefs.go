@@ -167,8 +167,8 @@ func locationSection(d *prefsDraft) {
 			matches := matchCities(q)
 			Container(Attrs(Gap(2)), func() {
 				for _, c := range matches {
-					if clickableRow(c.Name) {
-						d.locationName = c.Name
+					if clickableRow(cityLabel(c)) {
+						d.locationName = cityLabel(c)
 						d.lat = strconv.FormatFloat(c.Lat, 'f', 5, 64)
 						d.lng = strconv.FormatFloat(c.Lng, 'f', 5, 64)
 						d.alt = strconv.FormatFloat(c.Alt, 'f', 0, 64)
@@ -215,20 +215,6 @@ func clickableRow(label string) bool {
 		Label(label, FontSize(13))
 	})
 	return clicked
-}
-
-func matchCities(q string) []City {
-	q = strings.ToUpper(q)
-	var out []City
-	for _, c := range cities {
-		if strings.Contains(strings.ToUpper(c.Name), q) {
-			out = append(out, c)
-			if len(out) >= 12 {
-				break
-			}
-		}
-	}
-	return out
 }
 
 func trackingSection(d *prefsDraft) {

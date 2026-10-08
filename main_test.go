@@ -221,6 +221,61 @@ func TestStartFetchFromRefreshGoroutine(t *testing.T) {
 	<-refresh
 }
 
+// TestEmbeddedCityList guards the city data contract: the embedded list parses
+// at init with a country on every entry and valid coordinates, keeps its
+// accented names, and an ASCII query matches them.
+func TestEmbeddedCityList(t *testing.T) {
+	if len(cities) < 20000 {
+		t.Fatalf("embedded city list too small: %d", len(cities))
+	}
+	var high, low bool
+	for _, c := range cities {
+		if c.Name == "" || c.Country == "" {
+			t.Fatalf("city missing name or country: %+v", c)
+		}
+		if c.Lat < -90 || c.Lat > 90 || c.Lng < -180 || c.Lng > 180 {
+			t.Fatalf("city out of range: %+v", c)
+		}
+		if c.Alt < -500 || c.Alt > 9000 {
+			t.Fatalf("implausible elevation: %+v", c)
+		}
+		high = high || c.Alt > 2000
+		low = low || (c.Alt > -50 && c.Alt < 50)
+	}
+	if !high || !low {
+		t.Fatalf("elevation column looks unpopulated (high=%v low=%v)", high, low)
+	}
+
+	// The list spells it Zürich; an ASCII query must still find it.
+	var accented bool
+	for _, c := range cities {
+		if c.Name == "A Coruña" {
+			accented = true
+			break
+		}
+	}
+	if !accented {
+		t.Fatal("non-ASCII city name lost in the UTF-8 round trip")
+	}
+
+	matches := matchCities("zurich")
+	if len(matches) == 0 || matches[0].Name != "Zürich" || matches[0].Country != "Switzerland" {
+		t.Fatalf("ASCII query 'zurich' did not match accented Zürich: %+v", matches)
+	}
+
+	// Country is part of the match, the cap holds, and an empty query is the
+	// whole list.
+	if len(matchCities("switzerland")) == 0 {
+		t.Fatal("country search returned nothing")
+	}
+	if n := len(matchCities("a")); n > maxCityMatches {
+		t.Fatalf("match cap exceeded: %d", n)
+	}
+	if len(matchCities("")) != len(cities) {
+		t.Fatal("empty query should return the whole list")
+	}
+}
+
 // TestNormalizeKeepsZeroMinElevation guards the minimum-elevation contract: 0
 // is a valid slider value meaning "no elevation filter", so normalize must not
 // replace it with the default. Only a negative value is defaulted.
