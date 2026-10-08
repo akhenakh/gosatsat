@@ -316,15 +316,3 @@ func (s *State) mergeSatellites(tles map[int]*sgp4.TLE, nameToNorad map[string]i
 		return strings.ToUpper(s.satOrder[i].Name) < strings.ToUpper(s.satOrder[j].Name)
 	})
 }
-
-// namesIndex returns the name->NORAD index for the current store. Kept for
-// parity with the websat search-by-name behavior.
-func (s *State) namesIndex() map[string]int {
-	idx := make(map[string]int, len(s.sats))
-	for id, sat := range s.sats {
-		if n := strings.ToUpper(strings.TrimSpace(sat.Name)); n != "" {
-			idx[n] = id
-		}
-	}
-	return idx
-}

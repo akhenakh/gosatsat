@@ -224,7 +224,6 @@ func recomputePasses() {
 				return
 			}
 			st.passes = mergePasses(st.passes, passes)
-			st.passesDirty = false
 		})
 		RequestNextFrame()
 	}()

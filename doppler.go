@@ -15,11 +15,7 @@ func parseFrequencyMHz(freqStr string) float64 {
 	if freqStr == "" {
 		return 0
 	}
-	parts := strings.Split(freqStr, "/")
-	if len(parts) == 0 {
-		return 0
-	}
-	val, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
+	val, err := strconv.ParseFloat(strings.TrimSpace(strings.Split(freqStr, "/")[0]), 64)
 	if err != nil {
 		return 0
 	}

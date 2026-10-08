@@ -66,9 +66,6 @@ func main() {
 			st.onboardStep = *step
 			st.initOnboarding()
 		}
-		if *dark {
-			st.cfg.DarkMode = true
-		}
 	} else {
 		if needsOnboarding {
 			st.view = viewOnboarding

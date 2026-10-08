@@ -86,9 +86,8 @@ type State struct {
 	sats     map[int]*Sat
 	satOrder []*Sat
 
-	passes      []*Pass
-	passesDirty bool
-	passGen     int
+	passes  []*Pass
+	passGen int
 
 	fetching    bool
 	fetchErrs   []string
@@ -182,12 +181,6 @@ func (s *State) locationName() string {
 	return formatLatLng(s.cfg.Location.Lat, s.cfg.Location.Lng)
 }
 
-func (s *State) trackedIDs() []int {
-	out := make([]int, 0, len(s.cfg.TrackedSats))
-	out = append(out, s.cfg.TrackedSats...)
-	return out
-}
-
 func (s *State) isTracked(norad int) bool {
 	for _, id := range s.cfg.TrackedSats {
 		if id == norad {
@@ -205,10 +198,6 @@ func (s *State) trackedSats() []*Sat {
 		}
 	}
 	return out
-}
-
-func (s *State) getSat(norad int) *Sat {
-	return s.sats[norad]
 }
 
 // sortedPasses returns passes filtered to tracked satellites, sorted by AOS.

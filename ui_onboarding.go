@@ -237,6 +237,5 @@ func (s *State) finishOnboarding() {
 		s.cfgWarn = err.Error()
 	}
 	s.view = viewMain
-	s.passesDirty = true
 	recomputePasses()
 }

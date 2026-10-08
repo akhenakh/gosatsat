@@ -19,9 +19,6 @@ func computePasses(loc sgp4.Location, minElevation float64, tles map[int]*sgp4.T
 	}
 
 	workers := runtime.NumCPU()
-	if workers < 1 {
-		workers = 1
-	}
 	sem := make(chan struct{}, workers)
 	results := make(chan []*Pass, len(ids))
 	var wg sync.WaitGroup
