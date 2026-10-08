@@ -71,7 +71,10 @@ func (c *Config) normalize() {
 	if c.Version == 0 {
 		c.Version = def.Version
 	}
-	if c.MinElevation == 0 {
+	// MinElevation 0 is a valid choice (no elevation filter) and the slider
+	// allows it, so it is not defaulted; only a negative value from a
+	// hand-edited config is.
+	if c.MinElevation < 0 {
 		c.MinElevation = def.MinElevation
 	}
 	if c.RefreshHours <= 0 {

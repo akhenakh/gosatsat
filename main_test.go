@@ -221,6 +221,22 @@ func TestStartFetchFromRefreshGoroutine(t *testing.T) {
 	<-refresh
 }
 
+// TestNormalizeKeepsZeroMinElevation guards the minimum-elevation contract: 0
+// is a valid slider value meaning "no elevation filter", so normalize must not
+// replace it with the default. Only a negative value is defaulted.
+func TestNormalizeKeepsZeroMinElevation(t *testing.T) {
+	c := Config{MinElevation: -1}
+	c.normalize()
+	if c.MinElevation != defaultMinElevation {
+		t.Fatalf("negative min elevation should default, got %v", c.MinElevation)
+	}
+	c = Config{MinElevation: 0}
+	c.normalize()
+	if c.MinElevation != 0 {
+		t.Fatalf("min elevation 0 was defaulted to %v", c.MinElevation)
+	}
+}
+
 // TestSavePrefsCapsTracked guards the tracked-satellite limit in Preferences:
 // saving more than maxTrackedSats is refused with an error, the config is left
 // untouched, and the view stays open so the user can fix the selection.
