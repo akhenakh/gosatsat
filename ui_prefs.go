@@ -62,6 +62,10 @@ func (s *State) savePrefs() {
 			tracked = append(tracked, id)
 		}
 	}
+	if len(tracked) > maxTrackedSats {
+		d.err = fmt.Sprintf("You can track at most %d satellites (%d selected).", maxTrackedSats, len(tracked))
+		return
+	}
 	sort.Ints(tracked)
 
 	s.cfg.Location = &LocationConfig{Name: d.locationName, Lat: lat, Lng: lng, Alt: alt}
@@ -228,7 +232,7 @@ func matchCities(q string) []City {
 }
 
 func trackingSection(d *prefsDraft) {
-	sectionHeader(fmt.Sprintf("Tracked satellites (%d)", countTrue(d.tracked)))
+	sectionHeader(fmt.Sprintf("Tracked satellites (%d/%d)", countTrue(d.tracked), maxTrackedSats))
 	Container(Attrs(Gap(8)), func() {
 		Container(Attrs(Row, Gap(10), CrossMid), func() {
 			Container(Attrs(Grow(1)), func() {

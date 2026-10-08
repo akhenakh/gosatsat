@@ -221,6 +221,33 @@ func TestStartFetchFromRefreshGoroutine(t *testing.T) {
 	<-refresh
 }
 
+// TestSavePrefsCapsTracked guards the tracked-satellite limit in Preferences:
+// saving more than maxTrackedSats is refused with an error, the config is left
+// untouched, and the view stays open so the user can fix the selection.
+func TestSavePrefsCapsTracked(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	loadDemoData()
+	st.openPrefs()
+	for i := 0; i <= maxTrackedSats; i++ {
+		st.prefs.tracked[i] = true
+	}
+	st.savePrefs()
+
+	if st.prefs == nil {
+		t.Fatal("save should have been refused")
+	}
+	if st.prefs.err == "" {
+		t.Fatal("expected an error about the tracked limit")
+	}
+	if st.view != viewPrefs {
+		t.Fatalf("view should stay on preferences, got %d", st.view)
+	}
+	if st.cfg.Location == nil || st.cfg.Location.Name != "Zurich, Switzerland" {
+		t.Fatalf("config was modified by the refused save: %+v", st.cfg.Location)
+	}
+}
+
 // TestIsQuitCombo pins the quit shortcut detection: Q with Ctrl, Meta/Super,
 // or Cmd.
 func TestIsQuitCombo(t *testing.T) {
