@@ -123,16 +123,18 @@ func startFetch() {
 	}()
 }
 
-// startRefreshLoop refetches the orbital data periodically.
+// startRefreshLoop refetches the orbital data periodically. The interval is
+// re-read from the config on every cycle, so a change in Preferences takes
+// effect without restarting the app.
 func startRefreshLoop() {
 	go func() {
-		hours := st.cfg.RefreshHours
-		if hours <= 0 {
-			hours = defaultRefreshHours
-		}
-		ticker := time.NewTicker(time.Duration(hours) * time.Hour)
-		defer ticker.Stop()
-		for range ticker.C {
+		for {
+			var hours int
+			WithFrameLock(func() { hours = st.cfg.RefreshHours })
+			if hours <= 0 {
+				hours = defaultRefreshHours
+			}
+			time.Sleep(time.Duration(hours) * time.Hour)
 			maybeFetch()
 		}
 	}()
