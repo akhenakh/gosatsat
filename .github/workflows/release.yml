@@ -20,6 +20,8 @@ jobs:
   release:
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     runs-on: ubuntu-latest
     env:
       # Optional. When unset, the Homebrew bump step is skipped and the
@@ -56,6 +58,13 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest release artifacts
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            dist/*.tar.gz
+            dist/*.zip
 
       - name: Publish Homebrew formula
         if: env.TAP_GITHUB_TOKEN != '' && steps.tag.outputs.tag != ''

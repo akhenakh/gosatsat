@@ -70,6 +70,15 @@ On macOS the archive contains only **`SatSat.app`** — drag it into
 `/Applications`. The bundle is unsigned, so the first launch needs
 right-click → Open (or `xattr -dr com.apple.quarantine SatSat.app`).
 
+### Verifying a release
+
+Release archives carry [build provenance](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)
+signed by this repository's release workflow. Check a downloaded archive with:
+
+```sh
+gh attestation verify satsat_<version>_Darwin_arm64.tar.gz --repo akhenakh/gosatsat
+```
+
 ## Features
 
 - **Passes** — sortable list of the next 72 hours of passes for your tracked
