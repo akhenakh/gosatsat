@@ -459,6 +459,27 @@ func TestParseOrbitalDataTLE(t *testing.T) {
 	}
 }
 
+func TestParseTLEsReportsRejectedSets(t *testing.T) {
+	// One good set followed by one whose checksum does not match: the good set
+	// is kept and the rejected one is reported instead of vanishing.
+	flip := func(line string) string {
+		c := byte('0')
+		if line[68] == '0' {
+			c = '1'
+		}
+		return line[:68] + string(c)
+	}
+	data := demoISSName + "\n" + demoISS1 + "\n" + demoISS2 + "\n" +
+		"MALFORMED\n" + flip(demoISS1) + "\n" + flip(demoISS2) + "\n"
+	tles, _, err := parseOrbitalData([]byte(data))
+	if len(tles) != 1 {
+		t.Fatalf("parsed %d sets, want the one valid set", len(tles))
+	}
+	if err == nil || !strings.Contains(err.Error(), "1 of 2") {
+		t.Fatalf("error = %v, want it to report that 1 of 2 sets was rejected", err)
+	}
+}
+
 func TestMigrateTleSource(t *testing.T) {
 	old := "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
 	got := migrateTleSource(old)

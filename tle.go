@@ -25,7 +25,8 @@ const userAgent = "gosatsat/1.0 (+https://github.com/akhenakh/gosatsat)"
 // results. It understands CelesTrak's GP CSV and OMM JSON formats (which
 // support catalog numbers above 99999) as well as legacy TLE text (e.g. AMSAT).
 // Later sources win on a NORAD conflict; sources that fail are reported but do
-// not invalidate the ones that succeeded.
+// not invalidate the ones that succeeded, and a source that parses only partly
+// keeps the records that did parse while its failures are reported too.
 func fetchTLEs(ctx context.Context, urls []string) (map[int]*sgp4.TLE, map[string]int, []string) {
 	type result struct {
 		tles        map[int]*sgp4.TLE
@@ -39,11 +40,10 @@ func fetchTLEs(ctx context.Context, urls []string) (map[int]*sgp4.TLE, map[strin
 		go func(i int, u string) {
 			defer wg.Done()
 			tles, names, err := fetchTLESource(ctx, u)
-			if err != nil {
-				results[i] = result{err: fmt.Sprintf("%s: %v", hostOf(u), err)}
-				return
-			}
 			results[i] = result{tles: tles, nameToNorad: names}
+			if err != nil {
+				results[i].err = fmt.Sprintf("%s: %v", hostOf(u), err)
+			}
 		}(i, u)
 	}
 	wg.Wait()
@@ -54,7 +54,6 @@ func fetchTLEs(ctx context.Context, urls []string) (map[int]*sgp4.TLE, map[strin
 	for _, r := range results {
 		if r.err != "" {
 			errs = append(errs, r.err)
-			continue
 		}
 		for id, tle := range r.tles {
 			tles[id] = tle
@@ -125,13 +124,17 @@ func isGPCSVHeader(data []byte) bool {
 
 // ommsToTLEs converts parsed OMM records to TLE element sets, keyed by catalog
 // number. It relies on the library's ToTLE, which tolerates a missing or
-// malformed object id.
+// malformed object id. Records that cannot be converted are skipped and counted
+// in the returned error, so a source's failures are visible rather than looking
+// like an empty download.
 func ommsToTLEs(omms []sgp4.OMM) (map[int]*sgp4.TLE, map[string]int, error) {
 	tles := make(map[int]*sgp4.TLE, len(omms))
 	names := make(map[string]int, len(omms))
+	var skipped int
 	for i := range omms {
 		tle, err := omms[i].ToTLE()
 		if err != nil || tle.SatelliteNumber == 0 {
+			skipped++
 			continue
 		}
 		tles[tle.SatelliteNumber] = tle
@@ -139,14 +142,20 @@ func ommsToTLEs(omms []sgp4.OMM) (map[int]*sgp4.TLE, map[string]int, error) {
 			names[n] = tle.SatelliteNumber
 		}
 	}
+	if skipped > 0 {
+		return tles, names, fmt.Errorf("%d of %d OMM records could not be converted", skipped, len(omms))
+	}
 	return tles, names, nil
 }
 
 // parseTLEs parses a stream of TLEs. It accepts the usual 3-line (name, 1, 2)
-// format and tolerates 2-line blocks without a name.
+// format and tolerates 2-line blocks without a name. Sets that fail to parse are
+// skipped and counted in the returned error, so the caller can report them
+// instead of showing a partially empty source as a success.
 func parseTLEs(r io.Reader) (map[int]*sgp4.TLE, map[string]int, error) {
 	tles := make(map[int]*sgp4.TLE)
 	names := make(map[string]int)
+	var rejected, sets int
 
 	scanner := bufio.NewScanner(r)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
@@ -157,16 +166,20 @@ func parseTLEs(r io.Reader) (map[int]*sgp4.TLE, map[string]int, error) {
 			name, line1, line2 = "", "", ""
 			return
 		}
+		sets++
 		lines := []string{line1, line2}
 		if strings.TrimSpace(name) != "" {
 			lines = []string{strings.TrimSpace(name), line1, line2}
 		}
 		tle, err := sgp4.ParseTLELines(lines)
-		if err == nil && tle.SatelliteNumber != 0 {
-			tles[tle.SatelliteNumber] = tle
-			if n := strings.ToUpper(strings.TrimSpace(tle.Name)); n != "" {
-				names[n] = tle.SatelliteNumber
-			}
+		if err != nil || tle.SatelliteNumber == 0 {
+			rejected++
+			name, line1, line2 = "", "", ""
+			return
+		}
+		tles[tle.SatelliteNumber] = tle
+		if n := strings.ToUpper(strings.TrimSpace(tle.Name)); n != "" {
+			names[n] = tle.SatelliteNumber
 		}
 		name, line1, line2 = "", "", ""
 	}
@@ -197,6 +210,9 @@ func parseTLEs(r io.Reader) (map[int]*sgp4.TLE, map[string]int, error) {
 	flush()
 	if err := scanner.Err(); err != nil {
 		return tles, names, err
+	}
+	if rejected > 0 {
+		return tles, names, fmt.Errorf("%d of %d element sets could not be parsed", rejected, sets)
 	}
 	return tles, names, nil
 }
