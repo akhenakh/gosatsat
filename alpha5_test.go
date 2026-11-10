@@ -7,12 +7,15 @@ import (
 	"github.com/akhenakh/sgp4"
 )
 
-// tleLinesWithCatalog substitutes the five-character catalog field of the demo
-// ISS element set and recomputes the checksums. The field is written here rather
-// than through sgp4.FormatAlpha5 because v1.0.3's writer stops at A9999 (its
-// alpha5Max is computed as 10*10000+9999, so B..Z are rejected) even though its
-// parser decodes all of them.
-func tleLinesWithCatalog(field string) (string, string) {
+// tleLinesWithCatalog substitutes the catalog field of the demo ISS element set
+// and recomputes the checksums. The field is encoded by the library, so these
+// fixtures also exercise the Alpha-5 writer against the parser.
+func tleLinesWithCatalog(t *testing.T, norad int) (string, string) {
+	t.Helper()
+	field, err := sgp4.FormatAlpha5(norad)
+	if err != nil {
+		t.Fatalf("format catalog number %d: %v", norad, err)
+	}
 	l1 := demoISS1[:2] + field + demoISS1[7:]
 	l2 := demoISS2[:2] + field + demoISS2[7:]
 	return fixChecksum(l1), fixChecksum(l2)
@@ -44,9 +47,9 @@ func TestParseOrbitalDataAlpha5TLE(t *testing.T) {
 
 // The catalog field holds five characters, so every value above 99999 lands on
 // a letter prefix (A0000 is 100000, Z9999 is 339999) and the boundary cases also
-// cross digit carries and the letters I and O, which Alpha-5 skips. Each set
-// goes through the app's TLE parser, so checksum validation covers the field
-// too, and then through a full position computation.
+// cross digit carries and the letters I and O, which Alpha-5 skips. Each set is
+// encoded by the library, goes through the app's TLE parser, so checksum
+// validation covers the field too, and then through a full position computation.
 func TestAlpha5CatalogRange(t *testing.T) {
 	start := time.Date(2025, 9, 5, 22, 0, 0, 0, time.UTC)
 	cases := []struct {
@@ -66,7 +69,14 @@ func TestAlpha5CatalogRange(t *testing.T) {
 		{"Z9999", 339999}, // ceiling of the five-character field
 	}
 	for _, tc := range cases {
-		l1, l2 := tleLinesWithCatalog(tc.field)
+		field, err := sgp4.FormatAlpha5(tc.want)
+		if err != nil {
+			t.Fatalf("%d: format: %v", tc.want, err)
+		}
+		if field != tc.field {
+			t.Fatalf("%d: encoded as %q, want %q", tc.want, field, tc.field)
+		}
+		l1, l2 := tleLinesWithCatalog(t, tc.want)
 		if len(l1) != 69 || len(l2) != 69 {
 			t.Fatalf("%s: generated %d/%d-char lines", tc.field, len(l1), len(l2))
 		}
@@ -91,7 +101,7 @@ func TestAlpha5CatalogRange(t *testing.T) {
 	}
 
 	// A two-line block without a name line is accepted too.
-	l1, l2 := tleLinesWithCatalog("C3456")
+	l1, l2 := tleLinesWithCatalog(t, 123456)
 	if tles, _, err := parseOrbitalData([]byte(l1 + "\n" + l2 + "\n")); err != nil {
 		t.Fatalf("parse nameless Alpha-5 set: %v", err)
 	} else if tles[123456] == nil {
@@ -125,7 +135,7 @@ func TestAlpha5SatelliteEndToEnd(t *testing.T) {
 	st.cfg = defaultConfig()
 	st.cfg.Location = &LocationConfig{Name: "Zurich, Switzerland", Lat: 47.3769, Lng: 8.5417, Alt: 408}
 
-	l1, l2 := tleLinesWithCatalog("Z9999")
+	l1, l2 := tleLinesWithCatalog(t, 339999)
 	tles, names, err := parseOrbitalData([]byte("HIGH-SAT\n" + l1 + "\n" + l2 + "\n"))
 	if err != nil {
 		t.Fatalf("parse: %v", err)

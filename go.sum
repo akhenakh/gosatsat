@@ -24,7 +24,7 @@ github.com/akhenakh/maprender v0.0.0-20260824230925-ca8cfbf0bb25 h1:+UarxYzokiZE
 github.com/akhenakh/maprender v0.0.0-20260824230925-ca8cfbf0bb25/go.mod h1:bfi0f5vTP2ZFhxn9VWSkXZF3W3gUrFVruluq+MvIVLc=
 github.com/akhenakh/mvtgo v0.0.0-20260426004454-bc6e3d2e2fd2 h1:LMYDm1Vmkcyi4EIfQtATvMYPtL/mbxcyGKKhcXI7PdQ=
 github.com/akhenakh/mvtgo v0.0.0-20260426004454-bc6e3d2e2fd2/go.mod h1:tFQaflbArkRqYqduzCEEwrVGQseV6y5DPePa5YuHE2U=
-github.com/akhenakh/sgp4 v1.0.3 h1:Za57BMhPT7w221xTgXxdKB/oWbEgzvoB5CQv3naMPnY=
+github.com/akhenakh/sgp4 v1.0.3 h1:gLH7PsdK6ZnOvjP+MppQxD3JGEKUjAG+Db9DKYULrq8=
 github.com/akhenakh/sgp4 v1.0.3/go.mod h1:JfAepWD223Cel6uRpzYdip/xijWZ2FT457YFLWy8Md4=
 github.com/andybalholm/brotli v1.2.2 h1:HzTuoo2ErYQqf5qvcJInB8uvqSVxRttzkFexPWtnceM=
 github.com/andybalholm/brotli v1.2.2/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
