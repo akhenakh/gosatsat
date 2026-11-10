@@ -126,7 +126,10 @@ Orbital elements come from the URLs in the config. The default set is:
 
 The format is detected from the response, so any of the three can be added.
 CSV and JSON are parsed by the `sgp4` library (`ParseOMMsCSV` / `ParseOMMs`),
-which builds element sets directly from the numeric catalog id.
+which builds element sets directly from the numeric catalog id. Plain TLE text
+is parsed too, including the Alpha-5 catalog field Space-Track uses above
+99999 (`A0000` is 100000), so a 3LE source works as well. Sets that fail to
+parse are counted in the source's status instead of being dropped silently.
 
 To respect CelesTrak's [usage policy](https://celestrak.org/usage-policy.php),
 SatSat keeps at least **2 hours** between requests: it loads the cached elements
