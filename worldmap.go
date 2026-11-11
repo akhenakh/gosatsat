@@ -15,7 +15,10 @@ import (
 	. "go.hasen.dev/shirei"
 )
 
-const mapTileSize = 256
+// mapTileSize is the renderer's tile size. The base map and the overlay must
+// agree on it or markers are drawn at the wrong distance from the center:
+// maprender uses 512 px tiles, so a hardcoded 256 halved every offset.
+const mapTileSize = maprender.TileSize
 
 // mapRenderW/mapRenderH is the working resolution of the base map. It is wider
 // than tall so the map fills a typical desktop window.
