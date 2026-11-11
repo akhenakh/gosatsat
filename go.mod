@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	github.com/akhenakh/maprender v0.0.0-20260824230925-ca8cfbf0bb25
-	github.com/akhenakh/sgp4 v1.0.4
+	github.com/akhenakh/sgp4 v1.0.5
 	go.hasen.dev/shirei v0.8.0
 	golang.org/x/image v0.44.0
 	golang.org/x/text v0.40.0
