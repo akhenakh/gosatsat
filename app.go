@@ -59,27 +59,32 @@ func maybeFetch() {
 }
 
 // startFetch downloads all TLE and transponder sources, merges them into the
-// stable store and recomputes passes. It runs both from the UI thread and from
-// the periodic refresh goroutine, so the fetching guard and the config snapshot
-// are taken under the frame lock.
+// stable store and recomputes passes. It never blocks and never touches st on
+// the caller's goroutine: the single-flight guard, the config snapshot and the
+// download all run on a background goroutine. That makes it safe from the UI
+// thread — where Refresh, Preferences Save and the refresh loop all call it —
+// because taking the frame lock there would deadlock the frame (the mutex is
+// already held for the whole frame).
 func startFetch() {
-	var cfg Config
-	started := false
-	WithFrameLock(func() {
-		if st.fetching {
+	go func() {
+		var cfg Config
+		started := false
+		WithFrameLock(func() {
+			if st.fetching {
+				return
+			}
+			st.fetching = true
+			st.fetchErrs = nil
+			st.fetchNotice = ""
+			cfg = st.cfg
+			started = true
+		})
+		if !started {
 			return
 		}
-		st.fetching = true
-		st.fetchErrs = nil
-		st.fetchNotice = ""
-		cfg = st.cfg
-		started = true
-	})
-	if !started {
-		return
-	}
+		// Show the refreshing state as soon as the guard is taken.
+		RequestNextFrame()
 
-	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 		defer cancel()
 
