@@ -101,13 +101,6 @@ func mapToolbar() {
 			st.mapZoom++
 			st.invalidateMap()
 		}
-		if Button(TypLocation, "Center on me") {
-			if st.cfg.Location != nil {
-				st.mapCenterLat = st.cfg.Location.Lat
-				st.mapCenterLng = st.cfg.Location.Lng
-				st.invalidateMap()
-			}
-		}
 	})
 }
 
